@@ -27,6 +27,16 @@ questions = [{
                 "id": 2,
                 "q": "What is the main goal of the ideation phase of iterative design?",
                 "a": "Generating as many possible design solutions as possible"
+                },
+             {
+                "id": 3,
+                "q": "What is source domain that is no longer familiar to today's world?",
+                "a": "Dead Metaphors"
+                },
+             {
+                "id": 4,
+                "q": "What is signifier?",
+                "a": "Cues placed by a designer to help users discover what to do."
                 }
             ]
 

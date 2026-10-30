@@ -16,7 +16,10 @@ const editDialog = document.querySelector("#edit-dialog");
 const editQuestion = document.querySelector("#edit-question");
 const editAnswer = document.querySelector("#edit-answer");
 // TODO: grab references to any necessary elements you added to index.html (search, counter, prev/next buttons)
-
+const search = document.querySelector("#search")
+const counter = document.querySelector("#counter")
+const prevButton = document.querySelector("#prev-button")
+const nextButton = document.querySelector("#next-button")
 
 // ---------- Errors ----------
 
@@ -79,6 +82,7 @@ function showPage() {
   if (currentIndex < 0) currentIndex = 0;
   renderPreviews();
   showCard();
+  updateCounter();
 }
 
 // Sidebar: one preview per question. Clicking a preview shows that card.
@@ -110,18 +114,24 @@ function showCard() {
 
   const card = document.createElement("div");
   card.className = "card";
+  const cardActions = document.createElement("div");
+  cardActions.className = "card-actions";
 
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "Delete";
+  deleteButton.className = "delete-btn";
   deleteButton.addEventListener("click", function () {
     deleteQuestion(question);
   });
 
   const editButton = document.createElement("button");
   editButton.textContent = "Edit";
+  editButton.className = "edit-btn";
   editButton.addEventListener("click", function () {
     openEditDialog(question);
   });
+
+  cardActions.append(editButton, deleteButton);
 
   const questionText = document.createElement("p");
   questionText.className = "question";
@@ -135,23 +145,52 @@ function showCard() {
     answerText.classList.toggle("hidden");
   });
 
-  card.append(deleteButton, editButton, questionText, answerText);
+  card.append(cardActions, questionText, answerText);
   cardArea.append(card);
 }
-
 
 // ---------- Navigation and search ----------
 
 // TODO: Previous / Next. Write functions that change currentIndex to the appropriate value
 // (wrapping around at both ends) and then call showPage(). Then write event listeners to attach these
 // functions to the appropriate Previous/Next buttons. 
+function showPrevCard() {
+  if (questions.length === 0) return;
+  currentIndex = (currentIndex - 1 + questions.length) % questions.length;
+  showPage();
+}
+
+function showNextCard() {
+  if (questions.length === 0) return;
+  currentIndex = (currentIndex + 1) % questions.length;
+  showPage();
+}
+
+if (prevButton) {
+  prevButton.addEventListener("click", showPrevCard); 
+}
+
+if (nextButton) {
+  nextButton.addEventListener("click", showNextCard); 
+}
 
 // TODO: Update the progress text ("Card 3 of 3") in the counter whenever the card changes.
-
+function updateCounter() {
+  if (questions.length === 0) {
+    counter.textContent = "0 of 0";
+  } else {
+    counter.textContent = `Card ${currentIndex + 1} of ${questions.length}`;
+  }
+}
 
 // ---------- Actions ----------
 
 async function deleteQuestion(question) {
+  const confirmed = confirm("Are you sure you want to delete this question? This action cannot be undone.");
+  if (!confirmed) {
+    return;
+  }
+
   await apiSend("DELETE", "/delete/" + question.id);
   renderPage();
 }
@@ -177,6 +216,13 @@ document.querySelector("#update-button").addEventListener("click", async functio
 });
 
 document.querySelector("#add-button").addEventListener("click", async function () {
+  const q = newQuestion.value.trim();
+  const a = newAnswer.value.trim();
+  if (q === "" || a === "") {
+    showError("Please Enter Both Question and Answer");
+    return;
+  }
+  hideError();
   await apiSend("POST", "/add", {
     question: newQuestion.value,
     answer: newAnswer.value
